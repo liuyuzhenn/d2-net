@@ -77,26 +77,21 @@ def loss_function(
 
         # Descriptors at the corresponding positions
         fmap_pos2 = torch.round(
-            downscale_positions(pos2, scaling_steps=scaling_steps)
-        ).long()
+            downscale_positions(pos2, scaling_steps=scaling_steps)).long()
         descriptors2 = F.normalize(
             dense_features2[:, fmap_pos2[0, :], fmap_pos2[1, :]],
-            dim=0
-        )
+            dim=0)
         positive_distance = 2 - 2 * (
-            descriptors1.t().unsqueeze(1) @ descriptors2.t().unsqueeze(2)
-        ).squeeze()
+            descriptors1.t().unsqueeze(1) @ descriptors2.t().unsqueeze(2)).squeeze()
 
         all_fmap_pos2 = grid_positions(h2, w2, device)
         position_distance = torch.max(
             torch.abs(
                 fmap_pos2.unsqueeze(2).float() -
-                all_fmap_pos2.unsqueeze(1)),
-            dim=0)[0]
+                all_fmap_pos2.unsqueeze(1)), dim=0)[0]
         is_out_of_safe_radius = position_distance > safe_radius
         distance_matrix = 2 - 2 * (descriptors1.t() @ all_descriptors2)
-        negative_distance2 = torch.min(
-            distance_matrix + (1 - is_out_of_safe_radius.float()) * 10.,dim=1)[0]
+        negative_distance2 = torch.min(distance_matrix + (1 - is_out_of_safe_radius.float()) * 10.,dim=1)[0]
 
         all_fmap_pos1 = grid_positions(h1, w1, device)
         position_distance = torch.max(
@@ -115,8 +110,7 @@ def loss_function(
 
         loss = loss + (
             torch.sum(scores1 * scores2 * F.relu(margin + diff)) /
-            torch.sum(scores1 * scores2)
-        )
+            torch.sum(scores1 * scores2))
 
         has_grad = True
         n_valid_samples += 1
@@ -136,29 +130,23 @@ def loss_function(
             plt.imshow(im1)
             plt.scatter(
                 pos1_aux[1, :], pos1_aux[0, :],
-                s=0.25**2, c=col, marker=',', alpha=0.5
-            )
+                s=0.25**2, c=col, marker=',', alpha=0.5)
             plt.axis('off')
             plt.subplot(1, n_sp, 2)
             plt.imshow(
                 output['scores1'][idx_in_batch].data.cpu().numpy(),
-                cmap='Reds'
-            )
+                cmap='Reds')
             plt.axis('off')
             plt.subplot(1, n_sp, 3)
             im2 = imshow_image(
                 batch['image2'][idx_in_batch].cpu().numpy(),
-                preprocessing=batch['preprocessing']
-            )
+                preprocessing=batch['preprocessing'])
             plt.imshow(im2)
-            plt.scatter(
-                pos2_aux[1, :], pos2_aux[0, :],
+            plt.scatter(pos2_aux[1, :], pos2_aux[0, :],
                 s=0.25**2, c=col, marker=',', alpha=0.5)
             plt.axis('off')
             plt.subplot(1, n_sp, 4)
-            plt.imshow(
-                output['scores2'][idx_in_batch].data.cpu().numpy(),
-                cmap='Reds')
+            plt.imshow(output['scores2'][idx_in_batch].data.cpu().numpy(),cmap='Reds')
             plt.axis('off')
             savefig('train_vis/%s.%02d.%02d.%d.png' % (
                 'train' if batch['train'] else 'valid',
