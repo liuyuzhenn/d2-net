@@ -19,8 +19,8 @@ matplotlib.use('Agg')
 
 
 def loss_function(
-        model, batch, device, margin=1, safe_radius=4, scaling_steps=3, plot=False
-):
+        model, batch, device, margin=1,
+        safe_radius=4, scaling_steps=3, plot=False):
     output = model({
         'image1': batch['image1'].to(device),
         'image2': batch['image2'].to(device)
@@ -91,35 +91,25 @@ def loss_function(
         position_distance = torch.max(
             torch.abs(
                 fmap_pos2.unsqueeze(2).float() -
-                all_fmap_pos2.unsqueeze(1)
-            ),
-            dim=0
-        )[0]
+                all_fmap_pos2.unsqueeze(1)),
+            dim=0)[0]
         is_out_of_safe_radius = position_distance > safe_radius
         distance_matrix = 2 - 2 * (descriptors1.t() @ all_descriptors2)
         negative_distance2 = torch.min(
-            distance_matrix + (1 - is_out_of_safe_radius.float()) * 10.,
-            dim=1
-        )[0]
+            distance_matrix + (1 - is_out_of_safe_radius.float()) * 10.,dim=1)[0]
 
         all_fmap_pos1 = grid_positions(h1, w1, device)
         position_distance = torch.max(
-            torch.abs(
-                fmap_pos1.unsqueeze(2).float() -
-                all_fmap_pos1.unsqueeze(1)
-            ),
-            dim=0
-        )[0]
+            torch.abs(fmap_pos1.unsqueeze(2).float() -
+                all_fmap_pos1.unsqueeze(1)),dim=0)[0]
         is_out_of_safe_radius = position_distance > safe_radius
         distance_matrix = 2 - 2 * (descriptors2.t() @ all_descriptors1)
         negative_distance1 = torch.min(
             distance_matrix + (1 - is_out_of_safe_radius.float()) * 10.,
-            dim=1
-        )[0]
+            dim=1)[0]
 
         diff = positive_distance - torch.min(
-            negative_distance1, negative_distance2
-        )
+            negative_distance1, negative_distance2)
 
         scores2 = scores2[fmap_pos2[0, :], fmap_pos2[1, :]]
 
@@ -163,21 +153,18 @@ def loss_function(
             plt.imshow(im2)
             plt.scatter(
                 pos2_aux[1, :], pos2_aux[0, :],
-                s=0.25**2, c=col, marker=',', alpha=0.5
-            )
+                s=0.25**2, c=col, marker=',', alpha=0.5)
             plt.axis('off')
             plt.subplot(1, n_sp, 4)
             plt.imshow(
                 output['scores2'][idx_in_batch].data.cpu().numpy(),
-                cmap='Reds'
-            )
+                cmap='Reds')
             plt.axis('off')
             savefig('train_vis/%s.%02d.%02d.%d.png' % (
                 'train' if batch['train'] else 'valid',
                 batch['epoch_idx'],
                 batch['batch_idx'] // batch['log_interval'],
-                idx_in_batch
-            ), dpi=300)
+                idx_in_batch), dpi=300)
             plt.close()
 
     if not has_grad:
@@ -293,8 +280,7 @@ def uv_to_pos(uv):
 def warp(
         pos1,
         depth1, intrinsics1, pose1, bbox1,
-        depth2, intrinsics2, pose2, bbox2
-):
+        depth2, intrinsics2, pose2, bbox2):
     device = pos1.device
 
     Z1, pos1, ids = interpolate_depth(pos1, depth1)
